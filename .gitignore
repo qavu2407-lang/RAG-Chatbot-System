@@ -1,0 +1,11 @@
+# Secrets. A .gitignore only covers its OWN directory and below, so this must
+# live at the repo root to protect temp/.env and ignore the output dirs.
+.env
+temp/.env
+
+__pycache__/
+.DS_Store
+
+# Raw API dumps (~110 MB). The derived CSVs in out/ ARE tracked.
+out/raw/
+paper/out/raw/
