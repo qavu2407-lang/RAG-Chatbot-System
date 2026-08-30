@@ -109,11 +109,11 @@ the `url` column of every record, and it covers the 354 Scopus records that
 carry no DOI and so cannot be looked up by DOI at all.
 
 **L3 — OpenAlex is absent from this run.**
-OpenAlex moved to a prepaid credit model. The free allowance is roughly
-$0.005/day (~5 pages of 200 records); an uncapped harvest costs ~$0.23. The
-budget was exhausted mid-run and the API returned HTTP 429 with
-`"Insufficient budget"`. OpenAlex was excluded rather than left to fail on every
-query. This is a real coverage loss: in an earlier capped run it was the
+OpenAlex moved to a prepaid credit model priced at $0.001 per 200-record page,
+with a ~$0.0001 floor per request. The free daily allowance is approximately
+$0.09 — inferred from the 88 pages this run completed before exhaustion, and it
+resets at midnight UTC. A full uncapped OpenAlex harvest needs 228 pages (~$0.23),
+so it exceeds one day's free allowance but fits across three. The budget was exhausted mid-run and the API returned HTTP 429 with `"Insufficient budget"`. OpenAlex was excluded rather than left to fail on every query. This is a real coverage loss: in an earlier capped run it was the
 **highest-precision source** at 84.3% on-topic titles.
 
 **L4 — Google Scholar counts are estimates and paging is shallow.**
@@ -149,17 +149,24 @@ DOI, and all three failed:
 | Semantic Scholar batch API | Resolves DOIs but returned **0 abstracts** — licensing restrictions |
 | Crossref | **0 of 8** sampled DOIs carried an abstract |
 | Scopus Abstract Retrieval | **401** on `META_ABS`/`FULL` — subscription-gated (L2) |
-| **OpenAlex** | **88.8%** abstract coverage measured in the earlier capped run |
+| **OpenAlex** | **41.3%** abstract coverage — the only non-zero result |
 
-OpenAlex is chosen because it is the only source that clears three bars at once:
-it holds abstracts for the large majority of records (as `abstract_inverted_index`),
-it spans all publishers rather than one catalogue — so it also repairs the ACM and
-IEEE gap left by removing Crossref — and it supports batched DOI lookup, making
-enrichment of 3,426 records roughly 69 requests at about **$0.07**. It was also
-the highest-precision source measured in Phase 1 (84.3% on-topic titles), so the
-same spend adds coverage and improves evidence quality simultaneously. The cost is
-real but small, and unlike the Scopus paywall it is not gated behind an
-institutional subscription.
+OpenAlex is chosen because it is the only source that returns abstracts for these
+records at all, not because it returns many. Measured directly against a random
+sample of 150 of the missing-abstract DOIs: 137 matched, **62 carried an abstract
+(41.3%)**. On the harder unjudgeable subset the yield is 33%, of which 62% mention
+RAG — about **399 records rescued** from 1,932.
+
+An earlier draft of this section cited 88.8% coverage. That figure was wrong: it
+was measured on records returned by OpenAlex's own *search*, a population that by
+construction has abstracts, and it does not transfer to records sourced elsewhere.
+The corrected expectation is 41.3%.
+
+It also spans all publishers rather than one catalogue, so adding it as a source
+repairs the ACM and IEEE gap left by removing Crossref, and it supports batched
+DOI lookup — 50 DOIs per request, 69 requests for all 3,426 records, at a measured
+**$0.0001 per request (~$0.007 total)**. Unlike the Scopus paywall it is not gated
+behind an institutional subscription.
 
 ### 1.5 Next steps
 
