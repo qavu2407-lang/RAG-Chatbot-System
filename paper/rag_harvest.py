@@ -57,7 +57,7 @@ import time
 import unicodedata
 from datetime import datetime, timezone
 from pathlib import Path
-from typing import Any, Iterable
+from typing import Any
 from xml.etree import ElementTree as ET
 
 try:
@@ -86,7 +86,10 @@ else:
 DATE_FROM = "2020-01-01"
 YEAR_FROM = 2020
 
-OUT = Path("out")
+# Anchored to the script, not the caller's cwd: out/ lives beside rag_harvest.py,
+# and a cwd-relative path silently creates a second output tree when run from the
+# repo root. Override with --out-dir.
+OUT = Path(__file__).resolve().parent / "out"
 RAW = OUT / "raw"
 
 # Per-source politeness delay in seconds between HTTP calls.
@@ -549,6 +552,12 @@ def search_openalex(f: Fetcher, qid: str, query: str, cap: int):
         }
         if f.email:
             params["mailto"] = f.email
+        # mailto only requests the polite pool; it does NOT authenticate. Without
+        # the key every call is billed to the anonymous $0.10/day bucket instead
+        # of this account's $1/day budget and prepaid balance.
+        key = os.environ.get("OPENALEX_API_KEY", "").strip()
+        if key:
+            params["api_key"] = key
 
         body = f.get("openalex", "https://api.openalex.org/works", params=params)
         if body is None:
@@ -975,12 +984,21 @@ def main() -> int:
     ap.add_argument("--max-records", type=int, default=400,
                     help="Cap on records pulled per (source, query). 0 = no cap. Hit "
                          "COUNTS are always the API's full total, regardless of this cap.")
+    ap.add_argument("--out-dir", default=None,
+                    help="Write outputs here instead of the default out/ beside "
+                         "this script. Use for side runs that must not clobber "
+                         "the main record set.")
     ap.add_argument("--quiet", action="store_true")
     args = ap.parse_args()
 
     if not args.email:
         print("WARNING: no --email given. OpenAlex will be slower and "
               "may rate-limit.\n", file=sys.stderr)
+
+    global OUT, RAW
+    if args.out_dir:
+        OUT = Path(args.out_dir).resolve()
+        RAW = OUT / "raw"
 
     cap = float("inf") if args.max_records == 0 else args.max_records
     args.max_records = cap
@@ -1027,7 +1045,11 @@ def main() -> int:
 
             # Any adapter can break out of paging on an API failure. Without this,
             # a truncated pull is logged as if it were a complete one.
-            if (total is not None and len(recs) < total and len(recs) < scap
+            # OpenAlex reports a count that drifts during a cursor walk, so
+            # retrieved may exceed it or fall marginally short. Only flag a
+            # real shortfall, not paging jitter.
+            shortfall = (total - len(recs)) / total if total else 0
+            if (total is not None and shortfall > 0.01 and len(recs) < scap
                     and not note):
                 note = (f"INCOMPLETE — paging stopped after {len(recs)} of {total} "
                         f"records (API error or rate limit). This is a harvest "
@@ -1103,7 +1125,8 @@ def main() -> int:
         "script_version": "1.0",
         "sources_queried": args.sources,
         "queries_run": args.queries,
-        "max_records_per_source_query": args.max_records,
+        "max_records_per_source_query": (None if args.max_records == float("inf")
+                                         else args.max_records),
         "date_range": f"{YEAR_FROM}-present",
         "raw_records_before_dedup": len(all_records),
         "duplicates_removed": dup_removed,
@@ -1113,6 +1136,7 @@ def main() -> int:
             "IEEE_API_KEY": bool(os.environ.get("IEEE_API_KEY")),
             "SCOPUS_API_KEY": bool(os.environ.get("SCOPUS_API_KEY")),
             "GOOGLE_SCHOLAR_API_KEY": bool(os.environ.get("GOOGLE_SCHOLAR_API_KEY")),
+            "OPENALEX_API_KEY": bool(os.environ.get("OPENALEX_API_KEY")),
         },
     }
     with (OUT / "manifest.json").open("w", encoding="utf-8") as fh:

@@ -1,11 +1,10 @@
 {
-  "run_started_utc": "2026-08-28T05:02:38.411239+00:00",
-  "run_date_local": "2026-08-28",
-  "script_version": "1.0",
+  "run_date": "2026-08-31",
+  "script_version": "1.1",
   "sources_queried": [
     "arxiv",
+    "openalex",
     "s2",
-    "crossref",
     "ieee",
     "scopus",
     "scholar"
@@ -16,15 +15,39 @@
     "GAP-ORCH",
     "GAP-GOV"
   ],
-  "max_records_per_source_query": Infinity,
+  "max_records_per_source_query": null,
   "date_range": "2020-present",
-  "raw_records_before_dedup": 41618,
-  "duplicates_removed": 21404,
-  "unique_records": 20186,
-  "keys_present": {
-    "S2_API_KEY": false,
-    "IEEE_API_KEY": true,
-    "SCOPUS_API_KEY": true
+  "unique_records": 28689,
+  "records_by_source": {
+    "OpenAlex": 25267,
+    "Semantic Scholar": 17551,
+    "arXiv": 6751,
+    "Scopus": 6717,
+    "IEEE Xplore": 3866,
+    "Google Scholar": 158
   },
-  "crossref_removed": "Crossref and its ACM/IEEE publisher-scoped passes were removed from the pipeline after the harvest: Crossref has no boolean support and its hit counts are not comparable to boolean-capable databases. Raw responses are retained in out/raw/ for audit."
+  "abstracts_present": 24681,
+  "abstracts_missing": 4008,
+  "search_log_rows": 24,
+  "raw_responses": 791,
+  "keys_present": {
+    "OPENALEX_API_KEY": true,
+    "IEEE_API_KEY": true,
+    "SCOPUS_API_KEY": true,
+    "GOOGLE_SCHOLAR_API_KEY": true
+  },
+  "inclusion_criteria": {
+    "date_range": "2020-01-01 to present",
+    "language": "Only English-language papers are included.",
+    "language_detector": "langdetect 1.0.9, seeded (deterministic)",
+    "included_english": 27636,
+    "excluded_non_english": 678,
+    "flagged_for_review": 375
+  },
+  "known_limitations": [
+    "Scopus BASE truncated at the API's 5000-record per-query ceiling (13,396 true hits).",
+    "Scopus abstracts subscription-gated: 401 on META_ABS/FULL views.",
+    "Google Scholar hit counts are unstable estimates; deep paging refused past ~40 records.",
+    "Crossref removed: no boolean operator support, hit counts not comparable."
+  ]
 }
