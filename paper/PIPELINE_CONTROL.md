@@ -7,7 +7,7 @@ Running record of the systematic review pipeline. One section per phase.
 ## Phase 1: Bibliographic harvest
 
 **Status:** Complete.
-**Run date:** 2026-08-31
+**Run date:** 2026-09-03
 **Scope:** 2020-01-01 to present, uncapped
 **Scripts:** `rag_harvest.py` → `enrich_abstracts.py` → `classify_language.py`
 **Assumptions**: This data collection method assumes OpenAlex account has enough credits 
@@ -21,13 +21,6 @@ differently and a silently mangled string produces a hit count that means
 nothing. The exact string sent to each API is recorded verbatim in
 `search_log.csv` — not the string that was intended.
 
-| Query ID | Concept |
-|---|---|
-| `BASE` | Broad identification sweep across RAG architectures |
-| `GAP-POSTRET` | Gap 1 — post-retrieval: reranking, context compression, repacking |
-| `GAP-ORCH` | Gap 2 — orchestration: agentic RAG, self-reflection, adaptive routing |
-| `GAP-GOV` | Gap 3 — governance: access control, prompt injection, provenance, audit |
-
 Sources: **OpenAlex, Semantic Scholar, arXiv, Scopus, IEEE Xplore, Google
 Scholar** (via SerpAPI). Records are deduplicated on DOI, then arXiv ID, then
 normalised title; a record found in several databases is kept once with all its
@@ -38,28 +31,28 @@ says so and the hit count is left **blank** — never guessed, never zero.
 
 ### 1.2 Results
 
-**28,689 unique records.**
+**28,905 unique records.**
 
 | Source | Records | Share |
 |---|---|---|
-| OpenAlex | 25,267 | 88.1% |
-| Semantic Scholar | 17,551 | 61.2% |
-| arXiv | 6,751 | 23.5% |
-| Scopus | 6,717 | 23.4% |
-| IEEE Xplore | 3,866 | 13.5% |
-| Google Scholar | 158 | 0.6% |
+| OpenAlex | 25,412 | 87.9% |
+| Semantic Scholar | 17,645 | 61.0% |
+| arXiv | 6,751 | 23.4% |
+| Scopus | 6,717 | 23.2% |
+| IEEE Xplore | 3,910 | 13.5% |
+| Google Scholar | 707 | 2.4% |
 
 Shares exceed 100% because most records are found in more than one database.
 
 | Metric | Value |
 |---|---|
-| Abstract present | 25,838 / 28,689 (90.1%) |
-| DOI or arXiv ID present | 26,892 / 28,689 (93.7%) |
+| Abstract present | 26,462 / 28,905 (91.5%) |
+| DOI or arXiv ID present | 27,057 / 28,905 (93.6%) |
 | Duplicate DOIs remaining | 0 |
-| Raw API responses retained | 791 |
+| Raw API responses retained | 774 |
 
-Publication years: 2020 (181), 2021 (141), 2022 (173), 2023 (360), 2024 (3,062),
-2025 (10,415), 2026 (14,314), 2027 (42), 2028 (1).
+Publication years: 2020 (181), 2021 (141), 2022 (174), 2023 (357), 2024 (3,046),
+2025 (10,436), 2026 (14,521), 2027 (42), 2028 (1).
 
 ### 1.3 Outputs
 
@@ -67,12 +60,12 @@ All in `paper/out/`. `raw/` is git-ignored (~300 MB); the derived files are trac
 
 | File | Contents |
 |---|---|
-| `records.csv` | 28,689 deduplicated records — the screening set |
+| `records.csv` | 28,905 deduplicated records — the screening set |
 | `search_log.csv` | 24 rows (6 databases × 4 queries) for the PRISMA search log |
 | `manifest.json` | Run metadata, inclusion criteria, known limitations |
 | `enrichment_report.json` | Abstract-enrichment outcome |
 | `language_report.json` | Language-classification outcome |
-| `raw/` | 791 unmodified API responses — the audit trail |
+| `raw/` | 774 unmodified API responses — the audit trail |
 
 `raw/` is **not** a copy of `records.csv`. It holds every API response exactly as
 returned, before parsing, deduplication or filtering, so every number in the
@@ -89,9 +82,9 @@ result is recorded in `language` and `language_flag` so every call is auditable.
 
 | Outcome | Records |
 |---|---|
-| English — include | 27,659 |
+| English — include | 27,871 |
 | Non-English — exclude | 667 |
-| Flagged for human review | 363 |
+| Flagged for human review | 367 |
 
 Two design decisions worth recording:
 
@@ -100,11 +93,11 @@ Two design decisions worth recording:
 Oncology Rehabilitation: A Hybrid LLM–Knowledge Graph"*, contain no function
 words at all. Excluding ~500 English papers is a worse error than one dependency.
 
-**Mixed-language records go to review, not exclusion.** 309 records carry an
+**Mixed-language records go to review, not exclusion.** 317 records carry an
 English title over a non-English abstract. Many national journals publish an
 English title for a locally-written paper, but some publish English full text
 with a local abstract. These are flagged `REVIEW`: a wrong exclusion is
-unrecoverable, while a wrong inclusion is caught at screening. A further 54
+unrecoverable, while a wrong inclusion is caught at screening. A further 50
 records have too little text to classify and are likewise flagged, not excluded.
 
 **Future-dated records are retained.** 43 records dated beyond the current year
@@ -122,15 +115,12 @@ This is a structural per-query ceiling, **not** a quota — it does not reset, a
 re-running changes nothing. Recovering the remainder requires partitioning the
 query by `PUBYEAR`. The affected row carries an explicit `TRUNCATED` note.
 
-**L2 — Scopus abstracts are subscription-gated.** The search endpoint's standard
-view omits abstracts. The Abstract Retrieval API returns HTTP 200 under
-`view=META` (no abstract text); `META_ABS` and `FULL` both return
-`401 AUTHORIZATION_ERROR`. This is an entitlement, not a key problem — no
-additional developer key resolves it. Access needs an institutional subscription
-exercised from the institution's IP range, or an Elsevier InstToken. If it
-becomes available, the right resource is `/content/abstract/scopus_id/{id}`: the
-Scopus ID is already in each record's `url`, and it covers the Scopus records
-that carry no DOI and so cannot be looked up by DOI.
+**L2 — Scopus abstracts are unavailable.** The search endpoint's standard view
+omits abstracts. The Abstract Retrieval API returns HTTP 200 under `view=META`
+(no abstract text); `META_ABS` and `FULL` both return `401 AUTHORIZATION_ERROR`.
+This is a subscription entitlement, not a key problem — no developer key resolves
+it, and institutional network access was attempted without success. These
+abstracts stay unfilled and the affected records are screened on title alone.
 
 **L3 — Google Scholar counts are estimates and paging is shallow.** Google
 publishes no official API; SerpAPI is a third-party proxy. Scholar truncates
@@ -140,19 +130,17 @@ results"* at around record 40 per query, yielding 178 records against a claimed
 40,170 hits. **Scholar's totals must not be used as reproducible identification
 numbers.**
 
-**L4 — 2,851 records have no abstract.** Down from 4,008 after enrichment
-(§1.5). What remains, and why:
+**L4 — 2,443 records have no abstract.** What remains:
 
-| Block | Records | Status |
-|---|---|---|
-| Springer `10.1007` | 962 | Recoverable — Springer daily quota was exhausted mid-pass |
-| No identifier at all | 554 | Unreachable: nothing to look up by |
-| Elsevier `10.1016` | 504 | Needs a Scopus entitlement (L2) |
-| SSRN `10.2139` | 206 | Crossref holds no abstract for these |
-| ResearchGate / Zenodo / arXiv | 174 | arXiv's 36 are recoverable once it stops throttling |
+| Block | Records |
+|---|---|
+| Springer `10.1007` | 567 |
+| No identifier at all | 549 |
+| Elsevier `10.1016` | 504 |
+| SSRN `10.2139` | 201 |
+| Other (long tail) | 622 |
 
-Only the 554 with no identifier are structurally unreachable. These records
-cannot be screened on abstract evidence and must be judged on title alone.
+These records are screened on title alone.
 
 **L5 — OpenAlex counts drift during paging.** The reported `count` changes while
 a cursor walk is in progress, so retrieved totals may differ from it by a
@@ -185,23 +173,17 @@ pass. Measured yield over 4,008 candidates:
 
 | Provider | Candidates | Filled | Notes |
 |---|---|---|---|
-| OpenAlex | 3,454 | 0 | Batched 50 DOIs/request. Fills nothing once OpenAlex is harvested as a source — every abstract it holds already arrives with the record. |
-| Crossref | 3,454 | 668 | One DOI/request. Strong on preprint registrants: SSRN and Research Square return an abstract almost every time. |
-| Springer | 1,451 | 489 | One DOI/request, `10.1007` only. ~99% hit rate when it responds; stopped on its daily quota with 962 candidates unprocessed. |
+| OpenAlex | 3,079 | 21 | Batched 50 DOIs/request. Nearly everything it holds already arrives with the harvest. |
+| Crossref | 3,058 | 673 | One DOI/request. Strong on preprint registrants: SSRN and Research Square. |
+| Springer | 1,058 | 491 | One DOI/request, `10.1007` only. ~98% hit rate; stopped on its daily quota. |
 
-Coverage rose from 86.0% to **90.1%**. `abstract_source` records which provider
-supplied each abstract: original 24,370, Crossref 668, Springer 489, OpenAlex 311.
+Abstract coverage is **91.5%**. `abstract_source` records which provider supplied
+each abstract: original 24,862, Crossref 680, Springer 641, OpenAlex 279.
 
 **Crossref remains valid for DOI lookup.** It was removed as a *search* source
 because it has no boolean operators (above) — but metadata retrieval by DOI is a
 different capability, unaffected by that limitation, and it supplied the single
-largest share of enriched abstracts. An early sample suggesting Crossref held no
-abstracts was drawn from a Scopus-heavy subset and was not representative.
-
-**Springer signals overload by dropping connections, not by HTTP 429.** At
-0.4s/request the first pass lost 1,035 of 1,451 records to connection errors
-while continuing to report success. The delay is now 1.0s with one retry. Its
-free tier also enforces a daily quota that ends the pass outright.
+largest share of enriched abstracts. 
 
 ### 1.7 Operational notes
 
@@ -224,18 +206,116 @@ free tier also enforces a daily quota that ends the pass outright.
 
 ### 1.8 Next steps
 
-1. **Consolidated single-pass re-run** — planned, to regenerate every artifact
-   from one execution.
-2. **Scopus query-splitting** — partition `BASE` by `PUBYEAR` to recover the
-   ~8,400 hits lost to the 5,000 ceiling (L1). Methodology change; needs sign-off.
-3. **Finish the Springer pass** — `--providers springer` after the daily quota
-   resets; 962 candidates at a ~99% hit rate, taking coverage to roughly 93.5%.
-4. **Scopus abstracts** — retry from the institutional network (L2); would add
-   the 504 Elsevier records.
-5. **Phase 2 screening sweep** — tier the record set and emit `screening.csv` and
-   `excluded.csv` with reasons. Current evidence tiers: A 10,796 (RAG anchor in
-   title), B 14,904 (anchor in abstract), C 1,647 (no anchor, no abstract —
-   unjudgeable), D 1,342 (no anchor despite an abstract — excludable).
-6. **Zip `records.csv`** after Phase 2.
-7. **PRISMA flow diagram** from `search_log.csv`, carrying L1–L5 forward as
-   stated deviations.
+1. **PRISMA flow diagram** from `search_log.csv` and `screening_report.json`,
+   carrying L1–L5 forward as stated deviations.
+
+---
+
+## Phase 2: Screening sweep
+
+**Status:** Complete.
+**Run date:** 2026-09-03
+**Script:** `screen_records.py`
+
+### 2.1 Method
+
+Every record is assigned an evidence **tier** from where the RAG anchor appears,
+then either kept for screening or excluded with one stated reason. Nothing is
+deleted: `screening.csv` and `excluded.csv` together reconstruct `records.csv`
+exactly, and that identity is asserted on every run.
+
+| Tier | Definition | Meaning |
+|---|---|---|
+| A | Anchor in the **title** | Strongest evidence of topicality |
+| B | Anchor in the **abstract** only | Topical, weaker signal |
+| C | No anchor, **and no abstract** | Unjudgeable — kept, screened on title |
+| D | No anchor **despite** an abstract | Excluded |
+
+Exclusions apply in order and stop at the first match, so each excluded record
+carries exactly one reason:
+
+1. **Non-English** — `EXCLUDE` flags from `classify_language.py`. `REVIEW` flags
+   stay in the screening set by design.
+2. **Out of date range** — before 2020. A blank year is never excluded.
+3. **No RAG anchor** — tier D.
+
+### 2.2 Results
+
+**27,089 records to screen, 1,816 excluded**, from 28,905.
+
+| Tier | Screening set |
+|---|---|
+| A | 11,776 |
+| B | 14,028 |
+| C | 1,285 |
+
+| Exclusion reason | Records |
+|---|---|
+| No RAG anchor in title or abstract | 1,149 |
+| Non-English | 667 |
+| Out of date range | 0 |
+
+No record predates 2020, so the date criterion excluded nothing — the harvest
+already applied it at query time. **1,621 records carry a `reason` note** while
+staying in the screening set: 1,285 have no abstract and 392 are
+language-ambiguous or not yet officially published (56 carry both).
+
+### 2.3 Outputs
+
+| File | Contents |
+|---|---|
+| `screening.csv` | 27,089 records, sorted tier then newest — the screening order |
+| `excluded.csv` | 1,816 records, each with its single exclusion reason |
+| `screening_report.json` | Tier and exclusion counts for the PRISMA flow |
+| `records.csv.zip` | Compressed `records.csv` (50 MB → 17 MB); git-ignored, being derivable from a tracked file |
+
+Both CSVs carry the full 16-column record schema plus `tier` and `reason`.
+
+### 2.4 Decisions log
+
+**The screening anchor is wider than the search anchor.** The harvester's boolean
+requires the full phrase *retrieval-augmented generation*. Hundreds of papers write
+*retrieval-augmented framework / LLM / synergy* and never spell out
+"generation" — including *"MARS: Multi-agent Retrieval-Augmented Synergy"* and
+*"Graph Retrieval-Augmented Language Model for Question Answering of Vietnamese
+Law"* — and the strict phrase excluded or left unjudgeable every one of them. Screening therefore
+matches `retrieval[- ]augment`, because a wrong exclusion at this stage is
+unrecoverable while a wrong inclusion is caught at full-text review. 315 records
+match the wider anchor but not the strict phrase: 222 left tier D — 221 of them
+leaving the excluded set, the last one non-English anyway — and 93 left tier C
+for a judgeable tier.
+
+**The concept-term dimension was dropped.** A six-tier scheme crossing the anchor
+with per-query concept terms was trialled and abandoned: it ranked core RAG
+architecture papers *below* peripheral ones, because a paper about RAG as a whole
+names no single sub-concept. Tier depends on the anchor alone.
+
+**Tier C is kept, not excluded.** 1,285 records have neither an anchor nor an
+abstract to judge by. They are unjudgeable, not irrelevant — most are conference
+proceedings volumes and Scopus records whose abstracts are paywalled (L2). They
+are screened on title, or by retrieving the full text.
+
+### 2.5 Next steps
+
+1. **Add a Semantic Scholar provider to `enrich_abstracts.py`.** S2 holds
+   abstracts for the ACM (`10.1145`) tail that Crossref has no deposit for —
+   8 of 20 sampled, ~12 records. Batched 500 DOIs/request, free, no key. It is
+   the only remaining provider that adds anything: sampling confirmed S2 holds
+   **no** abstract for Elsevier or Springer DOIs, and does not index SSRN or
+   ResearchGate at all.
+2. **Re-run Springer and the new S2 pass once the rate limit resets.** Springer
+   stopped on its free-tier daily quota with **567 candidates never attempted**,
+   at a ~98% hit rate on the 491 it did reach. This is the single largest
+   recoverable block; together with the ACM tail it takes abstract coverage from
+   91.5% to roughly 93.5%. Everything remaining after that is a publisher wall,
+   not a quota — see L4.
+3. **Re-run the screening sweep after the new enrichment**, so tiers reflect the
+   filled abstracts. A record whose title carries the RAG anchor is tier A
+   whether or not it has an abstract — that is already how `tier_of()` works, and
+   1,127 of the 2,443 abstract-less records are tier A today. Extend the `reason`
+   note so those records say so explicitly, rather than only tier C carrying the
+   no-abstract note: the tier is unaffected, but a screener needs to know the
+   judgement was made on the title alone.
+4. **Title/abstract screening** of the 27,089, tier A first.
+5. **PRISMA flow diagram** — identification 75,592 → deduplication 28,905 →
+   screening 27,089, with the 1,816 exclusions itemised by reason.

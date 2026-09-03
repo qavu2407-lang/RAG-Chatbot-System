@@ -1,0 +1,22 @@
+{
+  "run_utc": "2026-09-03T02:04:11.687723+00:00",
+  "records_in": 28905,
+  "screening_set": 27089,
+  "excluded": 1816,
+  "tiers_all_records": {
+    "A": 12025,
+    "B": 14411,
+    "C": 1316,
+    "D": 1153
+  },
+  "tiers_screening_set": {
+    "A": 11776,
+    "B": 14028,
+    "C": 1285
+  },
+  "exclusion_reasons": {
+    "no RAG anchor in title or abstract": 1149,
+    "non-English": 667
+  },
+  "flagged_for_manual_attention": 1621
+}

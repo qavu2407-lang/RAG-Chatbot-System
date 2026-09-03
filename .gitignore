@@ -9,3 +9,6 @@ __pycache__/
 # Raw API dumps (~110 MB). The derived CSVs in out/ ARE tracked.
 out/raw/
 paper/out/raw/
+
+# derived from tracked records.csv
+paper/out/*.zip
