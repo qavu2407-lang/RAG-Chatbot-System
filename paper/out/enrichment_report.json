@@ -1,46 +1,35 @@
 {
-  "run_utc": "2026-08-31T05:17:45Z",
-  "scope": "Cumulative state of records.csv after all enrichment passes.",
-  "records_total": 28689,
-  "abstracts_present": 25838,
-  "abstracts_missing": 2851,
-  "coverage_pct": 90.1,
-  "abstracts_by_source": {
-    "original_from_harvest": 24370,
-    "OpenAlex": 311,
-    "Crossref": 668,
-    "Springer": 489
-  },
-  "filled_by_enrichment": 1468,
-  "providers": {
+  "run_utc": "2026-09-03T01:28:12.196299+00:00",
+  "records_total": 28905,
+  "missing_before": 3628,
+  "missing_after": 2443,
+  "filled_total": 1185,
+  "without_identifier": 549,
+  "by_provider": {
     "openalex": {
-      "candidates": 3454,
-      "filled": 0,
-      "note": "Fills nothing once OpenAlex is harvested as a source."
+      "candidates": 3079,
+      "filled": 21,
+      "errors": 0,
+      "cost_usd": 0.0062,
+      "stopped_early": null
     },
     "crossref": {
-      "candidates": 3454,
-      "filled": 668,
-      "note": "DOI metadata lookup. Strong on SSRN and Research Square."
+      "candidates": 3058,
+      "filled": 673,
+      "errors": 0,
+      "cost_usd": 0.0,
+      "stopped_early": null
     },
     "springer": {
-      "candidates": 1451,
-      "filled": 489,
-      "unprocessed_candidates": 962,
-      "stopped_early": "daily quota exhausted",
-      "note": "~99% hit rate when it responds; re-run after quota reset."
+      "candidates": 1058,
+      "filled": 491,
+      "errors": 0,
+      "cost_usd": 0.0,
+      "stopped_early": "springer: daily quota exhausted"
     }
   },
-  "remaining_gap": {
-    "Springer": 962,
-    "no identifier": 554,
-    "Elsevier": 504,
-    "other (long tail, <30 each)": 451,
-    "SSRN": 206,
-    "ResearchGate": 83,
-    "Zenodo": 55,
-    "arXiv": 36
-  },
-  "structurally_unreachable": 554,
-  "cost_usd_reported_by_openalex": 0.007
+  "cost_usd_reported_by_openalex": 0.0062,
+  "stopped_early": [
+    "springer: daily quota exhausted"
+  ]
 }

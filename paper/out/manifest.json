@@ -1,12 +1,12 @@
 {
-  "run_date": "2026-08-31",
+  "run_date": "2026-09-03",
   "script_version": "1.1",
   "sources_queried": [
-    "arxiv",
     "openalex",
     "s2",
-    "ieee",
+    "arxiv",
     "scopus",
+    "ieee",
     "scholar"
   ],
   "queries_run": [
@@ -17,37 +17,40 @@
   ],
   "max_records_per_source_query": null,
   "date_range": "2020-present",
-  "unique_records": 28689,
+  "unique_records": 28905,
   "records_by_source": {
-    "OpenAlex": 25267,
-    "Semantic Scholar": 17551,
+    "OpenAlex": 25412,
+    "Semantic Scholar": 17645,
     "arXiv": 6751,
     "Scopus": 6717,
-    "IEEE Xplore": 3866,
-    "Google Scholar": 158
+    "IEEE Xplore": 3910,
+    "Google Scholar": 707
   },
-  "abstracts_present": 24681,
-  "abstracts_missing": 4008,
+  "abstracts_present": 26462,
+  "abstracts_missing": 2443,
+  "abstract_coverage_pct": 91.5,
   "search_log_rows": 24,
-  "raw_responses": 791,
+  "raw_responses": 774,
   "keys_present": {
     "OPENALEX_API_KEY": true,
     "IEEE_API_KEY": true,
     "SCOPUS_API_KEY": true,
-    "GOOGLE_SCHOLAR_API_KEY": true
+    "GOOGLE_SCHOLAR_API_KEY": true,
+    "SPRINGER_META_API_KEY": true
   },
   "inclusion_criteria": {
     "date_range": "2020-01-01 to present",
     "language": "Only English-language papers are included.",
     "language_detector": "langdetect 1.0.9, seeded (deterministic)",
-    "included_english": 27636,
-    "excluded_non_english": 678,
-    "flagged_for_review": 375
+    "included_english": 27871,
+    "excluded_non_english": 667,
+    "flagged_for_review": 367
   },
   "known_limitations": [
-    "Scopus BASE truncated at the API's 5000-record per-query ceiling (13,396 true hits).",
-    "Scopus abstracts subscription-gated: 401 on META_ABS/FULL views.",
-    "Google Scholar hit counts are unstable estimates; deep paging refused past ~40 records.",
-    "Crossref removed: no boolean operator support, hit counts not comparable."
+    "Scopus BASE truncated at the API's 5000-record per-query ceiling.",
+    "Scopus abstracts subscription-gated: 401 on META_ABS/FULL; not recoverable.",
+    "Google Scholar hit counts are unstable estimates; deep paging refused.",
+    "Springer enrichment stopped on its daily quota; some abstracts remain unfilled.",
+    "Crossref removed as a search source: no boolean operator support."
   ]
 }
