@@ -6,12 +6,14 @@ temp/.env
 __pycache__/
 .DS_Store
 
-# Raw API dumps (~110 MB). The derived CSVs in out/ ARE tracked.
+# Raw API dumps. Kept as the compressed archive paper/out/raw.tar.xz, which IS
+# tracked; the uncompressed tree is not.
 out/raw/
 paper/out/raw/
 
-# Derived from tracked records.csv
+# records.csv is kept as a compressed archive rather than as a 48 MB CSV.
 paper/out/*.zip
+!paper/out/records.csv.zip
 
 # Method record md file mostly for Claude and me to track the progress. 
 # Should not be published, but not a secret either.
