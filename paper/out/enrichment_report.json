@@ -1,35 +1,41 @@
 {
-  "run_utc": "2026-09-03T01:28:12.196299+00:00",
+  "run_utc": "2026-09-08T06:51:36.065654+00:00",
   "records_total": 28905,
-  "missing_before": 3628,
-  "missing_after": 2443,
-  "filled_total": 1185,
+  "abstracts_present": 27053,
+  "coverage_pct": 93.6,
+  "missing": 1852,
   "without_identifier": 549,
+  "supplied_with_the_harvest": 24862,
+  "supplied_by_enrichment": 2191,
   "by_provider": {
     "openalex": {
-      "candidates": 3079,
-      "filled": 21,
-      "errors": 0,
-      "cost_usd": 0.0062,
-      "stopped_early": null
+      "supplied": 279,
+      "method": "batched 50 DOIs/request"
     },
     "crossref": {
-      "candidates": 3058,
-      "filled": 673,
-      "errors": 0,
-      "cost_usd": 0.0,
-      "stopped_early": null
+      "supplied": 680,
+      "method": "one DOI/request"
     },
     "springer": {
-      "candidates": 1058,
-      "filled": 491,
-      "errors": 0,
-      "cost_usd": 0.0,
-      "stopped_early": "springer: daily quota exhausted"
+      "supplied": 1191,
+      "method": "one DOI/request, 10.1007 only; free tier ~500/day, resumed until exhausted"
+    },
+    "semantic_scholar": {
+      "supplied": 41,
+      "method": "batched 500 DOIs/request, no key"
     }
   },
   "cost_usd_reported_by_openalex": 0.0062,
-  "stopped_early": [
-    "springer: daily quota exhausted"
-  ]
+  "stopped_early": null,
+  "remaining_by_block": {
+    "(no identifier)": 549,
+    "10.1016": 487,
+    "10.2139": 201,
+    "10.13140": 83,
+    "10.5281": 57,
+    "10.48550": 36,
+    "10.1007": 17,
+    "10.1109": 16,
+    "(long tail, ~200 prefixes)": 406
+  }
 }

@@ -13,6 +13,8 @@ names no single sub-concept.
     A  anchor in the title              — strongest evidence of topicality
     B  anchor in the abstract only
     C  no anchor, and no abstract       — unjudgeable, kept for manual screening
+       Tier is independent of whether a record has an abstract; records without
+       one carry a `reason` note saying so.
     D  no anchor despite having an abstract — excluded
 
 EXCLUSIONS
@@ -83,8 +85,11 @@ def note(rec: dict, tier: str) -> str:
     notes = []
     if rec.get("language_flag", "").startswith("REVIEW"):
         notes.append(rec["language_flag"].replace("REVIEW — ", "language: "))
-    if tier == "C":
-        notes.append("no abstract — screen on title, or retrieve full text")
+    # Tier A needs this too: the anchor was in the title, so the tier stands,
+    # but a screener has to know the judgement was made without an abstract.
+    if not rec.get("abstract", "").strip():
+        notes.append("no abstract — tier assigned from the title alone" if tier == "A"
+                     else "no abstract — screen on title, or retrieve full text")
     if rec.get("publication_status", "").strip():
         notes.append("not yet officially published")
     return "; ".join(notes)

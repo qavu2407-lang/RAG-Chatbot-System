@@ -1,22 +1,22 @@
 {
-  "run_utc": "2026-09-03T02:04:11.687723+00:00",
+  "run_utc": "2026-09-08T06:56:22.030645+00:00",
   "records_in": 28905,
-  "screening_set": 27089,
-  "excluded": 1816,
+  "screening_set": 27042,
+  "excluded": 1863,
   "tiers_all_records": {
     "A": 12025,
-    "B": 14411,
-    "C": 1316,
-    "D": 1153
+    "B": 14706,
+    "C": 974,
+    "D": 1200
   },
   "tiers_screening_set": {
     "A": 11776,
-    "B": 14028,
-    "C": 1285
+    "B": 14317,
+    "C": 949
   },
   "exclusion_reasons": {
-    "no RAG anchor in title or abstract": 1149,
+    "no RAG anchor in title or abstract": 1196,
     "non-English": 667
   },
-  "flagged_for_manual_attention": 1621
+  "flagged_for_manual_attention": 2126
 }

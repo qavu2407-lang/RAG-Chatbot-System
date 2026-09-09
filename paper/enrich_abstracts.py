@@ -20,6 +20,11 @@ each only on the records still missing an abstract after the previous one.
     3. Springer   one DOI/request, 10.1007 only. Neither Crossref nor OpenAlex
                   carries Springer abstracts; Springer's own Meta API does.
                   Free tier rejects batched `OR` queries (HTTP 403).
+    4. S2         batched 500 DOIs/request, no key. Runs last because it holds
+                  almost nothing the others miss: sampling found no abstract for
+                  any Elsevier or Springer DOI, and it does not index SSRN or
+                  ResearchGate at all. It does carry ACM (10.1145), which
+                  deposits no abstract to Crossref.
 
 Providers are ordered cheapest-and-broadest first so later passes see the
 smallest possible candidate set.
@@ -69,7 +74,8 @@ OPENALEX_KEY = os.environ.get("OPENALEX_API_KEY", "").strip()
 SPRINGER_KEY = os.environ.get("SPRINGER_META_API_KEY", "").strip()
 
 OA_BATCH = 50
-DELAY = {"openalex": 0.5, "crossref": 0.1, "springer": 1.0}
+S2_BATCH = 500
+DELAY = {"openalex": 0.5, "crossref": 0.1, "springer": 1.0, "s2": 3.0}
 
 _TAG = re.compile(r"<[^>]+>")
 _JATS = re.compile(r"^\s*(abstract|summary)\s*", re.I)
@@ -190,10 +196,49 @@ def pass_springer(session, todo, email, state):
         time.sleep(DELAY["springer"])
 
 
+def pass_s2(session, todo, email, state):
+    """Batched DOI lookup. Unauthenticated S2 throttles hard, so 429 backs off."""
+    for i in range(0, len(todo), S2_BATCH):
+        chunk = todo[i:i + S2_BATCH]
+        ids = ["DOI:" + r["doi_or_arxiv_id"].strip() for r in chunk]
+        for attempt in range(1, 6):
+            try:
+                resp = session.post(
+                    "https://api.semanticscholar.org/graph/v1/paper/batch",
+                    params={"fields": "abstract"}, json={"ids": ids}, timeout=90)
+            except requests.RequestException:
+                state["errors"] += 1
+                resp = None
+                break
+            if resp.status_code != 429:
+                break
+            time.sleep(5 * attempt)
+        if resp is None:
+            continue
+        if resp.status_code == 429:
+            state["stopped"] = "s2: rate limited after 5 attempts"
+            return
+        if not resp.ok:
+            state["errors"] += 1
+            continue
+        # The response is positional: one slot per requested id, null when S2
+        # does not know the DOI at all.
+        for rec, item in zip(chunk, resp.json()):
+            text = clean_abstract((item or {}).get("abstract") or "")
+            if text and not rec["abstract"].strip():
+                rec["abstract"] = text
+                rec["abstract_source"] = "Semantic Scholar"
+                state["filled"] += 1
+        state["done"] = min(i + S2_BATCH, len(todo))
+        yield
+        time.sleep(DELAY["s2"])
+
+
 PROVIDERS = {
     "openalex": (pass_openalex, lambda r: r["doi_or_arxiv_id"].startswith("10.")),
     "crossref": (pass_crossref, lambda r: r["doi_or_arxiv_id"].startswith("10.")),
     "springer": (pass_springer, lambda r: r["doi_or_arxiv_id"].startswith("10.1007")),
+    "s2": (pass_s2, lambda r: r["doi_or_arxiv_id"].startswith("10.")),
 }
 
 

@@ -10,5 +10,9 @@ __pycache__/
 out/raw/
 paper/out/raw/
 
-# derived from tracked records.csv
+# Derived from tracked records.csv
 paper/out/*.zip
+
+# Method record md file mostly for Claude and me to track the progress. 
+# Should not be published, but not a secret either.
+PIPELINE_CONTROL.md
